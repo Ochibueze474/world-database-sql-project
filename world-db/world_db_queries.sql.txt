@@ -1,0 +1,292 @@
+-- WORLD DATABASE SQL PROJECT QUERIES
+
+
+USE world;
+
+
+-- 1. View a sample of the dataset
+-- Question: What does the dataset look like?
+
+SELECT 
+* 
+FROM
+country LIMIT 10;
+
+
+-- 2. Top 10 most populated countries
+-- Question: Which countries have the highest population?
+
+SELECT 
+Name AS Country,
+Population
+FROM 
+country
+ORDER BY 
+Population DESC
+LIMIT 10;
+
+-- Insight:
+-- These are typically China, India, USA, Indonesia, Brazil, etc.
+-- Valuable for understanding where most of the world’s population is concentrated.
+
+
+-- 3. Largest countries by surface area
+-- Question: Which countries have the largest land area?
+
+SELECT 
+Name AS Country,
+SurfaceArea
+FROM 
+country
+ORDER BY 
+SurfaceArea DESC
+LIMIT 10;
+
+-- Insight:
+-- Russia, Canada, China, and the U.S. dominate by land area.
+-- Helps in analyzing global land distribution and resource potential.
+
+
+-- 4. Average population per continent
+-- Question: What is the average population of countries in each continent?
+
+SELECT 
+Continent, 
+ROUND(AVG(Population), 0) AS Avg_Population
+FROM 
+country
+GROUP BY 
+Continent
+ORDER BY 
+Avg_Population DESC;
+
+-- Insight:
+-- Asia has the highest average population per country, followed by Africa and Europe.
+-- Useful for comparing regional demographics.
+
+
+-- 5. Population density per country
+-- Question: Which countries are most densely populated?
+
+SELECT 
+Name AS Country, 
+ROUND(Population / SurfaceArea, 2) AS Population_Density
+FROM 
+country
+WHERE 
+SurfaceArea > 0
+ORDER BY 
+Population_Density DESC
+LIMIT 10;
+
+-- Insight:
+-- Monaco, Singapore, and Bangladesh top the list.
+-- Shows where urban crowding and infrastructure pressure are highest.
+
+
+-- 6. Top 10 most populated cities
+-- Question: Which cities have the highest population?
+
+SELECT 
+Name AS City, 
+CountryCode, 
+Population
+FROM 
+city
+ORDER BY 
+Population DESC
+LIMIT 10;
+
+-- Insight:
+-- Cities like Shanghai, Mumbai, and Tokyo lead globally.
+-- Important for urban planning and market analysis.
+
+
+-- 7. Countries with English as an official language
+-- Question: Which countries list English as their official language?
+
+SELECT
+c.Name AS Country,
+c.Continent,
+c.Region,
+cl.language AS Official_language
+FROM
+country AS c 
+JOIN
+countrylanguage AS cl ON c.Code = cl.CountryCode
+WHERE
+cl.Language = 'English' AND cl.IsOfficial = 'T'
+ORDER BY 
+c.Continent;
+
+-- Insight:
+-- English is official in countries across North America, Africa, and Oceania.
+-- Helps identify regions with shared linguistic and business advantages.
+
+
+-- 8. Richest countries by GNP per capita
+-- Question: Which are the top 5 richest countries based on GNP per capita?
+
+SELECT 
+Name AS Country,
+ROUND(GNP/Population,2) AS GNP_per_capita
+FROM
+country
+WHERE
+Population > 0
+AND GNP IS NOT NULL
+AND GNP > 0
+ORDER BY
+GNP_per_capita
+DESC
+LIMIT 5;
+
+-- Insight:
+-- Luxembourg, Switzerland, Norway, and the U.S. rank highly.
+-- Useful for evaluating global wealth distribution and living standards.
+
+
+-- 9. Total GNP per continent
+-- Question: Which continents contribute the most to the world’s total GNP?
+
+SELECT 
+Continent, 
+ROUND(SUM(GNP), 2) AS Total_GNP
+FROM 
+country
+GROUP BY 
+Continent
+ORDER BY 
+Total_GNP DESC;
+
+-- Insight:
+-- Asia and Europe lead in economic output.
+-- Useful for global trade and investment strategy analysis.
+
+
+-- 10. Most spoken languages globally
+-- Question: Which languages have the highest total number of speakers?
+
+SELECT
+cl.Language,
+ROUND(SUM(c.Population * (cl.Percentage/100)),2) AS Total_speakers
+FROM
+countrylanguage AS cl 
+JOIN
+country AS c ON cl.CountryCode = c.Code
+GROUP BY 
+cl.Language
+ORDER BY
+Total_speakers DESC
+LIMIT 10;
+
+-- Insight:
+-- Chinese, English, Hindi, and Spanish dominate globally.
+-- Helps understand cultural reach and communication influence.
+
+
+-- 11. Most populated city in each continent
+-- Question: What is the most populated city on each continent?
+
+SELECT 
+c.Continent, 
+ci.Name AS City, ci.Population
+FROM 
+city ci
+JOIN 
+country c ON ci.CountryCode = c.Code
+WHERE 
+(c.Continent, ci.Population) IN (
+  SELECT 
+c2.Continent, 
+MAX(ci2.Population)
+  FROM 
+city ci2
+  JOIN 
+country c2 ON ci2.CountryCode = c2.Code
+  GROUP BY 
+c2.Continent
+)
+ORDER BY 
+ci.Population DESC;
+
+-- Insight:
+-- Tokyo (Asia), Lagos (Africa), and New York (North America) are leading city hubs.
+-- Shows regional centers of population and commerce.
+
+
+-- 12. Total number of countries per continent
+-- Question: How many countries exist in each continent?
+
+SELECT 
+Continent, 
+COUNT(Name) AS Total_Countries
+FROM 
+country
+GROUP BY 
+Continent
+ORDER BY 
+Total_Countries DESC;
+
+-- Insight:
+-- Africa and Europe have the most countries.
+-- Useful for geopolitical or trade bloc analysis.
+
+
+-- 13. Countries with life expectancy above global average
+-- Question: Which countries have a life expectancy higher than the world average?
+
+SELECT 
+Name AS Country, 
+LifeExpectancy
+FROM 
+country
+WHERE 
+LifeExpectancy > (SELECT AVG(LifeExpectancy) FROM country)
+ORDER BY 
+LifeExpectancy DESC
+LIMIT 10;
+
+-- Insight:
+-- Nations with strong healthcare systems rank high.
+-- Useful for human development and policy comparison.
+
+
+-- 14. Countries with lowest GNP
+-- Question: Which countries have the lowest Gross National Product?
+
+SELECT 
+Name AS Country,
+GNP
+FROM 
+country
+WHERE 
+GNP IS NOT NULL
+AND GNP > 0
+ORDER BY
+GNP LIMIT 10;
+
+-- Insight:
+-- Mostly developing nations with smaller economies.
+-- Highlights global inequality and regions needing economic support.
+
+
+-- 15. Total population per region
+-- Question: What is the total population by region?
+
+SELECT 
+Region, 
+SUM(Population) AS Total_Population
+FROM 
+country
+GROUP BY 
+Region
+ORDER BY 
+Total_Population DESC;
+
+-- Insight:
+-- Regions like Eastern Asia and South-Central Asia dominate population counts.
+-- Valuable for regional development and infrastructure planning.
+
+
+
